@@ -196,6 +196,23 @@ app.post('/appointments', authorizeRequest, (req, res) => {
     res.status(201).send(appointments[appointments.length - 1])
 
 })
+app.delete('/appointments/:id', authorizeRequest, (req, res) => {
+
+    // Find appointment in database
+    const appointmentIndex = appointments.findIndex(appointment => appointment.id === parseInt(req.params.id))
+    if (appointmentIndex === -1) return res.status(404).send('Appointment not found')
+
+    // Check that the appointment belongs to the user
+    if (appointments[appointmentIndex].userId !== req.user.id) return res.status(401).send('Unauthorized');
+
+    // Remove appointment from active appointments
+    appointments.splice(appointmentIndex, 1);
+
+    // Send appointment delete to client
+    expressWs.getWss().clients.forEach(client => client.send(JSON.stringify({event: 'delete', id: req.params.id})));
+
+    res.status(204).end()
+})
 
 app.put('/appointments/:id', authorizeRequest, (req, res) => {
 

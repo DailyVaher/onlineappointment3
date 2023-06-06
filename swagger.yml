@@ -160,8 +160,8 @@ paths:
             examples:
               Appointment:
                 value:
-                  content: text
-                  title: text
+                  content: This is an example of content
+                  title: Example Appointment
         required: true
       tags:
         - /appointments
@@ -223,6 +223,29 @@ paths:
       operationId: updateAppointment
       summary: Update Appointment
       description: Updates an instance of `Appointment`.
+    delete:
+      tags:
+        - '/appointments/:id'
+      responses:
+        '204':
+          description: Successful response - delete specific Appointment from array.
+        '401':
+          content:
+            text/html:
+              examples:
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
+          description: Unauthorized
+        '404':
+          description: Appointment ID not found in database.
+      deprecated: false
+      security:
+        - Bearer: [ ]
+      operationId: deleteAppointment
+      summary: Delete Appointment
+      description: Deletes an instance of an Appointment.
 components:
   schemas:
     User:
