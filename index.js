@@ -18,8 +18,30 @@ app.use(express.json())
 const users = [
     {id: 1, email: 'admin', password: '$2b$10$0EfA6fMFRDVQWzU0WR1dmelPA7.qSp7ZYJAgneGsy2ikQltX2Duey'} // KollneKollne
 ]
+
+const appointments = [
+    {
+        id: 1,
+        title: 'Appointment 1',
+        content: 'This is the content of appointment 1',
+        userId: 1
+    },
+    {
+        id: 2,
+        title: 'Appointment 2',
+        content: 'This is the content of appointment 2',
+        userId: 2
+    },
+    {
+        id: 3,
+        title: 'Appointment 3',
+        content: 'This is the content of appointment 3',
+        userId: 1
+    }
+]
+
 let sessions = [
-    // {id: '123', userId: 1}
+     {id: '123', userId: 1}
 ]
 
 function tryToParseJson(jsonString) {
@@ -47,15 +69,15 @@ app.post('/users', async (req, res) => {
     try {
         const result = await verifyEmail(req.body.email);
         if (!result.success) {
-            return res.status(400).send('Email is invalid: ' + result.info)
+            return res.status(400).send('Invalid email: ' + result.info)
         }
         console.log('Email verified')
     } catch (error) {
         const errorObject = tryToParseJson(error)
         if (errorObject && errorObject.info) {
-            return res.status(400).send('Email is invalid: ' + errorObject.info)
+            return res.status(400).send('Invalid email: ' + errorObject.info)
         }
-        return res.status(400).send('Email is invalid: ' + error)
+        return res.status(400).send('Invalid email: ' + error)
     }
 
     // Hash password
@@ -139,12 +161,32 @@ function authorizeRequest(req, res, next) {
 
 }
 
+app.get('/appointments', authorizeRequest, (req, res) => {
+    const userAppointments = appointments.filter(appointment => appointment.userId === req.user.id)
+    res.send(userAppointments)
+})
+
 app.delete('/sessions', authorizeRequest, (req, res) => {
 
     // Remove session from sessions array
     sessions = sessions.filter(session => session.id !== req.session.id)
 
     res.status(204).end()
+
+})
+
+app.post('/appointments', authorizeRequest, (req, res) => {
+
+        // Validate title and content
+        if (!req.body.title || !req.body.content) return res.status(400).send('Title and content are required')
+
+        // Find max id
+        const maxId = appointments.reduce((max, appointment) => appointment.id > max ? appointment.id : max, appointments[0].id)
+
+        // Save appointment to database
+        appointments.push({id: maxId + 1, title: req.body.title, content: req.body.content, userId: req.user.id})
+
+        res.status(201).send(appointments[appointments.length - 1])
 
 })
 
@@ -157,7 +199,7 @@ function verifyEmail(email) {
         verifier.verify(email, (err, info) => {
             console.log(err, info);
             if (err) {
-                reject(JSON.stringify([err, info]));
+                reject(JSON.stringify(info));
             } else {
                 resolve(info);
             }
