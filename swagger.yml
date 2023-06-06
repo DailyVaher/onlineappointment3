@@ -1,6 +1,6 @@
 openapi: 3.0.2
 info:
-  title: OnlineAppointment2
+  title: OnlineAppointment3
   version: 1.0.0
 paths:
   /users:
@@ -40,18 +40,18 @@ paths:
               examples:
                 Email already exists:
                   value: Email already exists
-          description: The email provided already exists in the system.
+          description: The email address provided already exists in the system.
       operationId: createUser
       summary: Create a User
       description: Creates a new instance of a `User`.
   /sessions:
-    summary: Path used to manage the list of sessions.
+    summary: Path used to manage the list of session
     description: >-
-      The REST endpoint/path used to list and create zero or more `Session` entities.  This path
-      contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+      The REST endpoint/path used to list and create zero or more Session entities. The path contains
+      POST operation to perform the list and create task, respectively.
     post:
       requestBody:
-        description: A new `Session` to be created.
+        description: A new Session to be created.
         content:
           application/json:
             schema:
@@ -65,14 +65,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
-          description: Successful response.
+          description: Successful response
         '400':
           content:
             text/html:
               examples:
-                Email and password are required:
-                  value: Email and password are required
-          description: Bad Request
+                Bad request:
+                  value: Email and password a required
+          description: Bad request
         '401':
           content:
             text/html:
@@ -84,39 +84,145 @@ paths:
           content:
             text/html:
               examples:
-                User not found:
+                404 Not Found:
                   value: User not found
-          description: Not Found
+          description: User not found
       operationId: createSession
-      summary: Create a Session
-      description: 'Creates a new instance of a `Session`, signing the user in. Returns session ID.'
+      description: Creates a new instance of a Session, signs the user in. Returns session id.
     delete:
       tags:
         - /sessions
       responses:
         '204':
-          description: Successful response.
+          description: Successful response
         '400':
           content:
             text/html:
               examples:
-                Invalid Authorization header:
-                  value: Invalid Authorization header
-          description: Bad Request
+                Invalid authorization header:
+                  value: Invalid authorization header
+          description: Invalid authorization header
         '401':
           content:
             text/html:
               examples:
-                Authorization header is missing:
-                  value: Authorization header is missing
-                Invalid session id:
-                  value: Invalid session id
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
+          description: Missing authorization header
+      security:
+        - Bearer: []
+      summary: Destroy a session
+      description: 'Destroys a session, signs the user out. Returns session id.'
+  /appointments:
+    summary: Path used to manage the list of appointments
+    description: The REST endpoint/path used to list and create zero or more `Appointment` entities.  This path contains a
+      `GET` and `POST` operation to perform the list and create tasks.
+    get:
+      tags:
+        - /appointments
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: Successful response - returns an array of `Appointment` entities.
+        '400':
+          content:
+            text/html:
+              examples:
+                Invalid authorization header:
+                  value: Invalid authorization header
+          description: Bad request
+        '401':
+          content:
+            text/html:
+              examples:
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
+          description: Missing authorization header
+      summary: List All Appointments
+      description: Gets a list of all Appointment entities.
+      security:
+        -
+          Bearer: []
+    post:
+      requestBody:
+        description: A new Appointment to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+            examples:
+              Appointment:
+                value:
+                  content: text
+                  title: text
+        required: true
+      tags:
+        - /appointments
+      responses:
+        '201':
+          content:
+            text/html:
+              examples:
+                Successful response:
+                  value: Successful response
+          description: Successful response
+        '400':
+          content:
+            text/html:
+              examples:
+                Invalid authorization header:
+                  value: Invalid authorization header
+          description: Bad request
+        '401':
+          content:
+            text/html:
+              examples:
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
           description: Unauthorized
       security:
         -
           Bearer: []
-      summary: Destroy a Session
-      description: 'Destroys a `Session`, signing the user out. Reads the session ID from Authorization header.'
+      summary: Add an Appointment
+      description: Creates a new instance of an Appointment
+  /appointments/:id:
+    put:
+      requestBody:
+        description: An appointment  to be edited.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+            examples:
+              Appointment:
+                value:
+                  content: some text
+                  title: some text
+        required: true
+      tags:
+        - '/appointments/:id'
+      responses:
+        '400':
+          description: Bad request (Title and content are required)
+        '401':
+          description: Unauthorized
+        '404':
+          description: Appointment with given ID not found.
+      deprecated: false
+      security:
+        - Bearer: [ ]
+      operationId: updateAppointment
+      summary: Update Appointment
+      description: Updates an instance of `Appointment`.
 components:
   schemas:
     User:
@@ -138,7 +244,6 @@ components:
           type: string
           example: MySecurePassword123
       example:
-        id: 3
         email: email@example.com
         password: pass123
     Session:
@@ -152,7 +257,7 @@ components:
           format: int32
           type: integer
       example:
-        id: 38d1d51c-7d3c-48d3-a5ab-f51ea2379a9e
+        id: 330d67de-432b-48ce-a617-0bd6774ebcee
         userId: 1
     Credentials:
       title: Root Type for Credentials
@@ -166,6 +271,26 @@ components:
       example:
         email: admin
         password: KollneKollne
+    Appointment:
+      title: Root Type for Appointment
+      description: ''
+      type: object
+      properties:
+        content:
+          type: string
+        id:
+          format: int32
+          type: integer
+        title:
+          type: string
+        userId:
+          format: int32
+          type: integer
+      example:
+        content: This is the content of appointment 1
+        id: 1
+        title: Appointment 1
+        userId: 1
   securitySchemes:
     Bearer:
       scheme: bearer
@@ -176,4 +301,10 @@ tags:
     description: ''
   -
     name: /sessions
+    description: ''
+  -
+    name: /appointments
+    description: ''
+  -
+    name: '/appointment/:id'
     description: ''
