@@ -9,7 +9,7 @@ describe('Adding appointments as existing user', () => {
         cy.get('button').contains('Add Appointment').click();
         cy.get('#addAppointmentTitle').type('Title');
         cy.get('#addAppointmentContent').type('Content');
-        cy.get('#addAppointmentModal > .modal-dialog > .modal-content > .modal-footer > .btn-success').click();
+        cy.get('#addAppointmentModal > .modal-dialog > .modal-content > .modal-footer > .btn-success').click({ force: true });
         cy.wait(2000);
         cy.get('.appointment-card').should('contain', 'Title');
     });

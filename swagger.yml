@@ -7,7 +7,7 @@ paths:
     summary: Path used to manage the list of users.
     description: >-
       The REST endpoint/path used to list and create zero or more `User` entities.  This path contains a
-      `GET` and `POST` operation to perform the list and create tasks, respectively.
+      `POST` operation to perform the list and create tasks, respectively.
     post:
       requestBody:
         description: A new `User` to be created.
@@ -15,6 +15,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
+            examples:
+              User:
+                value:
+                  email: some text
+                  password: some text
         required: true
       tags:
         - /users
@@ -51,7 +56,7 @@ paths:
       POST operation to perform the list and create task, respectively.
     post:
       requestBody:
-        description: A new Session to be created.
+        description: Create a session
         content:
           application/json:
             schema:
@@ -79,6 +84,8 @@ paths:
               examples:
                 Invalid password:
                   value: Invalid password
+                Missing authorization header:
+                  value: Missing authorization header
           description: Unauthorized
         '404':
           content:
@@ -87,8 +94,16 @@ paths:
                 404 Not Found:
                   value: User not found
           description: User not found
+        '500':
+          content:
+            text/html:
+              examples:
+                Internal server error:
+                  value: Internal server error
+          description: Internal server error
       operationId: createSession
-      description: Creates a new instance of a Session, signs the user in. Returns session id.
+      summary: Create a session
+      description: 'Creates a new instance of a Session, signs the user in. Returns session id.'
     delete:
       tags:
         - /sessions
@@ -101,84 +116,6 @@ paths:
               examples:
                 Invalid authorization header:
                   value: Invalid authorization header
-          description: Invalid authorization header
-        '401':
-          content:
-            text/html:
-              examples:
-                Missing authorization header:
-                  value: Missing authorization header
-                Invalid session:
-                  value: Invalid session
-          description: Missing authorization header
-      security:
-        - Bearer: []
-      summary: Destroy a session
-      description: 'Destroys a session, signs the user out. Returns session id.'
-  /appointments:
-    summary: Path used to manage the list of appointments
-    description: The REST endpoint/path used to list and create zero or more `Appointment` entities.  This path contains a
-      `GET` and `POST` operation to perform the list and create tasks.
-    get:
-      tags:
-        - /appointments
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Appointment'
-          description: Successful response - returns an array of `Appointment` entities.
-        '400':
-          content:
-            text/html:
-              examples:
-                Invalid authorization header:
-                  value: Invalid authorization header
-          description: Bad request
-        '401':
-          content:
-            text/html:
-              examples:
-                Missing authorization header:
-                  value: Missing authorization header
-                Invalid session:
-                  value: Invalid session
-          description: Missing authorization header
-      summary: List All Appointments
-      description: Gets a list of all Appointment entities.
-      security:
-        -
-          Bearer: []
-    post:
-      requestBody:
-        description: A new Appointment to be created.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Appointment'
-            examples:
-              Appointment:
-                value:
-                  content: This is an example of content
-                  title: Example Appointment
-        required: true
-      tags:
-        - /appointments
-      responses:
-        '201':
-          content:
-            text/html:
-              examples:
-                Successful response:
-                  value: Successful response
-          description: Successful response
-        '400':
-          content:
-            text/html:
-              examples:
-                Invalid authorization header:
-                  value: Invalid authorization header
           description: Bad request
         '401':
           content:
@@ -192,12 +129,93 @@ paths:
       security:
         -
           Bearer: []
+      summary: Destroy a session
+      description: 'Destroys a session, signs the user out. Returns session id.'
+  /appointments:
+    summary: Path used to manage the list of appointments
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Appointment` entities.  This path
+      contains a `GET` and `POST` operation to perform the list and create tasks.
+    get:
+      tags:
+        - /appointments
+      responses:
+        '200':
+          description: "\r\nSuccessful response "
+        '400':
+          content:
+            text/html:
+              examples:
+                Invalid authorization header:
+                  value: Invalid authorization header
+          description: Bad request
+        '401':
+          content:
+            text/html:
+              examples:
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
+          description: Missing authorization header
+      security:
+        -
+          Bearer: []
+      operationId: getAppointments
+      summary: List All Appointments
+      description: Gets a list of all Appointment entities.
+    post:
+      requestBody:
+        description: A new Appointment to be created.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Appointment'
+            examples:
+              Appointment:
+                value:
+                  content: text
+                  title: text
+        required: true
+      tags:
+        - /appointments
+      responses:
+        '200':
+          description: Successful response
+        '400':
+          content:
+            text/html:
+              examples:
+                Invalid authorization header:
+                  value: Invalid authorization header
+                Title and content are required:
+                  value: Title and content are required
+          description: Bad request
+        '401':
+          content:
+            text/html:
+              examples:
+                Missing authorization header:
+                  value: Missing authorization header
+                Invalid session:
+                  value: Invalid session
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+      operationId: postAppointment
       summary: Add an Appointment
       description: Creates a new instance of an Appointment
-  /appointments/:id:
+  '/appointments{id}':
+    summary: Path used to manage individual appointment records
+    description: >-
+      The REST endpoint/path used to list and create zero or more `Session` entities.  This path
+      contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
     put:
       requestBody:
-        description: An appointment  to be edited.
+        description: An existing appointment  to be updated.
         content:
           application/json:
             schema:
@@ -210,42 +228,88 @@ paths:
         required: true
       tags:
         - '/appointments/:id'
+      parameters:
+        -
+          name: id
+          description: Appointment to be edited.
+          schema:
+            type: integer
+          in: path
+          required: true
       responses:
+        '200':
+          description: Successful response
         '400':
-          description: Bad request (Title and content are required)
-        '401':
-          description: Unauthorized
-        '404':
-          description: Appointment with given ID not found.
-      deprecated: false
-      security:
-        - Bearer: [ ]
-      operationId: updateAppointment
-      summary: Update Appointment
-      description: Updates an instance of `Appointment`.
-    delete:
-      tags:
-        - '/appointments/:id'
-      responses:
-        '204':
-          description: Successful response - delete specific Appointment from array.
+          content:
+            text/html:
+              examples:
+                Title and content are required:
+                  value: Title and content are required
+          description: Client side error
         '401':
           content:
             text/html:
               examples:
-                Missing authorization header:
-                  value: Missing authorization header
                 Invalid session:
                   value: Invalid session
           description: Unauthorized
         '404':
+          content:
+            text/html:
+              examples:
+                Appointment not found:
+                  value: Appointment not found
+          description: Appointment with given ID not found.
+      deprecated: false
+      security:
+        -
+          Bearer: []
+      operationId: editAppointment
+      summary: Edit an appointment
+      description: Updates an instance of `Appointment` that the user has previously saved.
+    delete:
+      tags:
+        - '/appointments/:id'
+      parameters:
+        -
+          name: id
+          description: Appointment to be deleted
+          schema:
+            type: integer
+          in: path
+          required: true
+      responses:
+        '204':
+          description: Successful response
+        '401':
+          content:
+            text/html:
+              examples:
+                Invalid session:
+                  value: Invalid session
+          description: Unauthorized
+        '404':
+          content:
+            text/html:
+              examples:
+                Appointment not found:
+                  value: Appointment not found
           description: Appointment ID not found in database.
       deprecated: false
       security:
-        - Bearer: [ ]
+        -
+          Bearer: []
       operationId: deleteAppointment
-      summary: Delete Appointment
+      summary: Delete an Appointment
       description: Deletes an instance of an Appointment.
+    parameters:
+      -
+        name: id
+        description: Appointment to be edited or deleted
+        schema:
+          type: integer
+        in: path
+        required: true
 components:
   schemas:
     User:
@@ -309,11 +373,6 @@ components:
         userId:
           format: int32
           type: integer
-      example:
-        content: This is the content of appointment 1
-        id: 1
-        title: Appointment 1
-        userId: 1
   securitySchemes:
     Bearer:
       scheme: bearer

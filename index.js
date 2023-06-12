@@ -17,7 +17,7 @@ app.use(express.static('public'))
 app.use(express.json())
 app.ws('/', function (ws, req) {
     ws.on('message', function (msg) {
-        expressWs.getWss().clients.forEach(client => client.send(msg));
+        expressWs.getWss().clients.forEach(client => client.send(msg));  // index.html deleteAppointment tekitas topelt kaardi, saab lahendada ka siin, kui kasutajale ei saada tema lisatud kohtumist tagasi
     });
     console.log('socket', req.testing);
 });
@@ -193,7 +193,7 @@ app.post('/appointments', authorizeRequest, (req, res) => {
     // Send appointment to client
     expressWs.getWss().clients.forEach(client => client.send(JSON.stringify({event: 'create', appointment})));
 
-    res.status(201).send(appointments[appointments.length - 1])
+    res.status(200).send(appointments[appointments.length - 1])
 
 })
 app.delete('/appointments/:id', authorizeRequest, (req, res) => {
@@ -203,7 +203,7 @@ app.delete('/appointments/:id', authorizeRequest, (req, res) => {
     if (appointmentIndex === -1) return res.status(404).send('Appointment not found')
 
     // Check that the appointment belongs to the user
-    if (appointments[appointmentIndex].userId !== req.user.id) return res.status(401).send('Unauthorized');
+    if (appointments[appointmentIndex].userId !== req.user.id) return res.status(401).send('Invalid session');
 
     // Remove appointment from active appointments
     appointments.splice(appointmentIndex, 1);
@@ -221,7 +221,7 @@ app.put('/appointments/:id', authorizeRequest, (req, res) => {
     if (!appointment) return res.status(404).send('Appointment not found')
 
     // Check that the appointment belongs to the user
-    if (appointment.userId !== req.user.id) return res.status(401).send('Unauthorized')
+    if (appointment.userId !== req.user.id) return res.status(401).send('Invalid session')
 
     // Validate title and content
     if (!req.body.title || !req.body.content) return res.status(400).send('Title and content are required')
