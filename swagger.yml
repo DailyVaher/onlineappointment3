@@ -141,7 +141,13 @@ paths:
         - /appointments
       responses:
         '200':
-          description: "\r\nSuccessful response "
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+          description: Successful response - returns an array of `Appointment` entities.
         '400':
           content:
             text/html:
@@ -176,13 +182,18 @@ paths:
             examples:
               Appointment:
                 value:
-                  content: text
-                  title: text
+                  content: This is an example of content
+                  title: Example Appointment
         required: true
       tags:
         - /appointments
       responses:
         '200':
+          content:
+            text/html:
+              examples:
+                Successful response:
+                  value: Successful response
           description: Successful response
         '400':
           content:
@@ -208,7 +219,7 @@ paths:
       operationId: postAppointment
       summary: Add an Appointment
       description: Creates a new instance of an Appointment
-  '/appointments{id}':
+  '/appointments/{id}':
     summary: Path used to manage individual appointment records
     description: >-
       The REST endpoint/path used to list and create zero or more `Session` entities.  This path
@@ -373,6 +384,10 @@ components:
         userId:
           format: int32
           type: integer
+      example:
+          content: This is the content of Appointment 1
+          title: Appointment 1
+          userId: 1
   securitySchemes:
     Bearer:
       scheme: bearer
