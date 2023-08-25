@@ -1,6 +1,6 @@
 describe('Adding appointments as existing user', () => {
     it('should log in a user and create a new appointment successfully', () => {
-        cy.visit('http://localhost:4000/');
+        cy.visit('index.html');
         cy.get('button').contains('Sign In').click({force: true});
         cy.wait(2000);
         cy.get('#signInEmail').type('admin')

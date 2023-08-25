@@ -20,6 +20,21 @@ npm start
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 
+## Testing the app
+
+Before testing the app, make sure that .env contains the following:
+```
+SKIP_EMAIL_VERIFICATION=true
+```
+Testing the app from the command line:
+```
+npx cypress run 
+```
+Testing the app from the Cypress GUI:
+```
+npx cypress open -b chrome --e2e
+```
+
 ## Acknowledgements
 - [Vue.js](https://vuejs.org/)
 - [Express.js](https://expressjs.com/)

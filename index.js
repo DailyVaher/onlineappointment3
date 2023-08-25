@@ -75,19 +75,22 @@ app.post('/users', async (req, res) => {
     //const user = users.find(user => user.email === req.body.email)
     //if (!user) return res.status(404).send('User not found')
 
-    // Try to contact the mail server and send a test email without actually sending it
-    try {
-        const result = await verifyEmail(req.body.email);
-        if (!result.success) {
-            return res.status(400).send('Invalid email: ' + result.info)
+    // Try to contact the mail server and send a test email without actually sending it but skip this step if the environment variable SKIP_EMAIL_VERIFICATION is set to true
+    if(process.env.SKIP_EMAIL_VERIFICATION !== 'true') {
+        console.log('Emails are being verified!')
+        try {
+            const result = await verifyEmail(req.body.email);
+            if (!result.success) {
+                return res.status(400).send('Invalid email: ' + result.info)
+            }
+            console.log('Email verified')
+        } catch (error) {
+            const errorObject = tryToParseJson(error)
+            if (errorObject && errorObject.info) {
+                return res.status(400).send('Invalid email: ' + errorObject.info)
+            }
+            return res.status(400).send('Invalid email: ' + error)
         }
-        console.log('Email verified')
-    } catch (error) {
-        const errorObject = tryToParseJson(error)
-        if (errorObject && errorObject.info) {
-            return res.status(400).send('Invalid email: ' + errorObject.info)
-        }
-        return res.status(400).send('Invalid email: ' + error)
     }
 
     // Hash password

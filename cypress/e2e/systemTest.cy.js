@@ -1,87 +1,126 @@
 describe('Online Appointment App', () => {
+
+    let email = Math.random().toString(36).substring(2, 20) + '@example.com';
+    let password = Math.random().toString(36).substring(2, 20);
+
+    // Sign Up before the first test
+    before(() => {
+        cy.visit('http://localhost:4000/');
+        cy.get('button[data-bs-toggle="modal"]').contains('Sign Up').click({force: true})
+        cy.get('#signUpEmail').type(email, { force: true })
+        cy.get('#signUpPassword').type(password, { force: true })
+        cy.get('.modal-footer button').contains('Sign Up').click({force: true})
+
+        // Verify that the modal is closed
+        //cy.get('.modal').should('not.be.visible')
+
+    })
+
+    // Log in before each test
     beforeEach(() => {
         cy.visit('http://localhost:4000/');
+        cy.get('button[data-bs-toggle="modal"]').contains('Sign In').click({force: true})
+        cy.get('#signInEmail').click({force: true}).type(email, { force: true }).should('have.value', email)
+        cy.get('#signInPassword').click({force: true}).type(password, { force: true }).should('have.value', password)
+        cy.get('.modal-footer button').contains('Sign In')
+        //cy.get('.modal').should('be.visible') // Ensure the modal is closed
+        cy.get('button[data-cy="btnSignIn"]').click({force: true})
     })
 
-    it('should allow user sign up, log in, add/edit/delete meetings, and log out', () => {
-        // Sign Up
-        cy.get('button[data-bs-toggle="modal"]').contains('Sign Up').click({force: true})
-        cy.get('#signUpEmail').type('test.test@gmail.com')
-        cy.get('#signUpPassword').type('password')
-        cy.get('.modal-footer button').contains('Sign Up').click({force: true})
-        cy.get('.modal').should('be.visible') // Ensure the modal is closed
+    it('should add meetings', () => {
+        // Generate random title and content
+        let title = Math.random().toString(36).substring(2, 15);
+        let content = Math.random().toString(36).substring(2, 15);
 
-        // Log In
-        cy.get('button[data-bs-toggle="modal"]').contains('Sign In').click({force: true})
-        cy.get('#signInEmail').type('test.test@example.com')
-        cy.get('#signInPassword').type('password')
-        cy.get('.modal-footer button').contains('Sign In').click({force: true})
-        cy.get('.modal').should('be.visible') // Ensure the modal is closed
-
-        // Add appointment
-        cy.intercept('GET', '/api/appointment-cards', (req) => {
-            // Delay the response by 2 seconds
-            req.delay(2000);
-        }).as('getAndCacheAppointments');
-
-        cy.get('#addAppointmentModal > .modal-dialog > .modal-content > .modal-footer > .btn-secondary').click({force: true});
-        cy.get('#addAppointmentTitle').type('Title', {force: true})
-        cy.get('#addAppointmentContent').type('Content', {force: true})
-
-        // Wait for the network request to complete
-        //cy.wait('@getAndCacheAppointments')
-
-        // Verify appointment is added
-        //cy.contains('.appointment-card', 'Title' )
-        //    .should('be.visible')
-        //    .parent()
-        //    .within(() => {
-        //        cy.contains('Content').should('be.visible')
-        //        cy.get('button[data-bs-toggle="modal"][data-bs-target="#editAppointmentModal"]').click({force: true})
-        //    })
-
-
-        // Edit appointment
-        cy.get('#editAppointmentTitle').clear({force: true}).type('Title', {force: true})
-        cy.get('#editAppointmentContent').clear({force: true}).type('Content', {force: true})
-        cy.get('button[type="button"][class="btn btn-success"]', { multiple: true }).each(($button) => {
-            cy.wrap($button).click({ force: true });
+        cy.on('window:alert', (text) => {
+            expect(text).to.equal('Appointment subscribed'); // Modify this based on your actual alert message
         });
 
-        // Verify appointment is edited
-        //cy.contains('.appointment-card', 'Updated Appointment')
-        //    .should('be.visible')
-        //    .parent()
-        //    .within(() => {
-        //        cy.contains('Updated Content').should('be.visible')
-        //   })
+        // Call the Cypress command to add an appointment
+        cy.addAppointment(title, content);
 
-        // Delete appointment
-        cy.get('button[data-bs-toggle="modal"][data-bs-target="#deleteAppointmentModal"]').click({force: true})
-        cy.get('#deleteAppointmentModal').should('be.visible');
-
-        // Verify the title of the modal
-        cy.get('#deleteAppointmentModalLabel').should('have.text', 'Confirm Deletion');
-
-        // Verify the text in the modal body
-        cy.get('#deleteAppointmentModal .modal-body p').should('have.text', 'Are you sure you want to delete this appointment?');
-
-        // Click the "Cancel" button to close the modal
-        cy.get('#deleteAppointmentModal .modal-footer button.btn-secondary').click({force: true});
-
-        // Verify that the modal is no longer visible
-        cy.get('#deleteAppointmentModal').should('not.be.visible');
+        // Wait for the appointment card to appear
+        cy.get(`div.appointment-card[data-title="${title}"][data-content="${content}"]`)
+            .should('be.visible')
+            .then((appointmentCard) => {
+                // Now that the appointment card is visible, perform assertions within the card
+            });
     });
 
-    it('should delete the appointment', () => {
-        // ... Add code to open the modal and perform the deletion ...
+
+    it('should edit meetings', () => {
+
+        // Generate random title and content
+        let title = Math.random().toString(36).substring(2, 15);
+        let content = Math.random().toString(36).substring(2, 15);
+
+        // Call the Cypress command to add an appointment
+        cy.addAppointment(title, content)
+
+        // Get the appointment card by title and content
+        cy.get(`div.appointment-card:contains("${title}"):contains("${content}")`).within(() => {
+
+            // Click the "Edit" button in the appointment card
+            cy.get('button[data-cy="openEditAppointmentModal"]').click({force: true})
+
+        });
+
+        // Edit Title and Content
+        cy.get('#editAppointmentTitle').type(title + 'Edited', {force: true})
+        cy.get('#editAppointmentContent').type(content + 'Edited', {force: true})
+
+        // Click the "Save" button to save the appointment
+        cy.get('button[data-cy="btnEditAppointment"]').click({force: true})
+
+    })
+
+    it('should delete meetings', () => {
+
+        // Generate random title and content
+        let title = Math.random().toString(36).substring(2, 15);
+        let content = Math.random().toString(36).substring(2, 15);
+
+        // Call the Cypress command to add an appointment
+        cy.addAppointment(title, content)
+
+        // Get the appointment card by title and content
+        cy.get(`div.appointment-card:contains("${title}"):contains("${content}")`).within(() => {
+
+            // Click the "Delete" button in the appointment card
+            cy.get('button[data-cy="openDeleteAppointmentModal"]').click({force: true})
+
+        });
+
+        // Check that the Cancel button works
+        cy.get('#deleteAppointmentModal').should('be.visible');
+        cy.get('#deleteAppointmentModal .modal-footer button.btn-secondary').click({force: true});
+        cy.get('#deleteAppointmentModal').should('not.be.visible');
+
+        // Open the Delete modal again
+        cy.get(`div.appointment-card:contains("${title}"):contains("${content}")`).within(() => {
+
+            // Click the "Delete" button in the appointment card
+            cy.get('button[data-cy="openDeleteAppointmentModal"]').click({force: true})
+
+        })
 
         // Click the "Delete" button to confirm deletion
-        cy.get('#deleteAppointmentModal .modal-footer button.btn-danger').click({force: true});
+        cy.get('button[data-cy="btnDeleteAppointment"]').click({force: true});
 
-        // ... Add assertions or further actions after the deletion ...
+        // Check that the modal is closed
+        cy.get('#deleteAppointmentModal').should('not.be.visible');
 
-        // Verify appointment is deleted
-        cy.contains('.appointment-card', 'Updated Appointment').should('not.exist')
+        // Check that the appointment card is deleted
+        cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`).should('not.exist')
+
     })
+
+    it('should log out', () => {
+        // Get the "Sign Out" button
+        cy.get('button').contains('Sign Out').click({force: true})
+
+        // Verify that the "Sign In" button is visible
+        cy.get('button').contains('Sign In').should('be.visible')
+    })
+
 })

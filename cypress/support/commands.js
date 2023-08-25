@@ -23,3 +23,26 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('addAppointment', (title, content) => {
+
+    // Open add appointment modal
+    //cy.get('button[data-cy="btnOpenAddAppointmentModal"]').click({force: true})
+    cy.get('button[data-cy="btnAddAppointment"]').click({force: true})
+
+
+    // Fill Title and Content
+    cy.get('#addAppointmentTitle').type(title, {force: true})
+    cy.get('#addAppointmentContent').type(content, {force: true})
+
+    // Click the "Add" button to add the appointment
+    //cy.get('button[data-cy="btnAddAppointment"]').click({force: true)
+    cy.get('[data-cy="btnAddAppointment"]').click({force: true})
+
+    // Verify that this appointment appeared
+
+    // Use template literals
+    cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`);
+
+
+})
