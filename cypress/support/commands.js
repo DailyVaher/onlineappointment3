@@ -28,7 +28,7 @@ Cypress.Commands.add('addAppointment', (title, content) => {
 
     // Open add appointment modal
     //cy.get('button[data-cy="btnOpenAddAppointmentModal"]').click({force: true})
-    cy.get('button[data-cy="btnAddAppointment"]').click({force: true})
+    cy.get('button[data-cy="btnOpenAddAppointmentModal"]').click({force: true})
 
 
     // Fill Title and Content
@@ -42,7 +42,7 @@ Cypress.Commands.add('addAppointment', (title, content) => {
     // Verify that this appointment appeared
 
     // Use template literals
-    cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`);
-
+    // cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`);
+    cy.contains('div.appointment-card', title).should('contain.text', content);
 
 })

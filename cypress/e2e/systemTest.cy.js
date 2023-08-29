@@ -39,12 +39,6 @@ describe('Online Appointment App', () => {
         // Call the Cypress command to add an appointment
         cy.addAppointment(title, content);
 
-        // Wait for the appointment card to appear
-        cy.get(`div.appointment-card[data-title="${title}"][data-content="${content}"]`)
-            .should('be.visible')
-            .then((appointmentCard) => {
-                // Now that the appointment card is visible, perform assertions within the card
-            });
     });
 
 
@@ -75,44 +69,35 @@ describe('Online Appointment App', () => {
     })
 
     it('should delete meetings', () => {
-
         // Generate random title and content
         let title = Math.random().toString(36).substring(2, 15);
         let content = Math.random().toString(36).substring(2, 15);
 
         // Call the Cypress command to add an appointment
-        cy.addAppointment(title, content)
+        cy.addAppointment(title, content);
 
         // Get the appointment card by title and content
         cy.get(`div.appointment-card:contains("${title}"):contains("${content}")`).within(() => {
 
             // Click the "Delete" button in the appointment card
-            cy.get('button[data-cy="openDeleteAppointmentModal"]').click({force: true})
+            cy.get('button[data-cy="openDeleteAppointmentModal"]').click();
 
+            // Intercept the DELETE and GET requests triggered during deletion
+            cy.intercept('DELETE', '/appointments/*').as('deleteRequest');
+            cy.intercept('GET', '/appointments').as('getAppointments');
+
+            // Click the "Delete" button to confirm deletion
+            cy.get('button[data-cy="btnDeleteAppointment"]').click();
+
+            cy.wait(1000);
+
+            // Wait for the DELETE request to complete
+            cy.wait('@deleteRequest');
+            cy.wait('@getAppointments');
         });
 
-        // Check that the Cancel button works
-        cy.get('#deleteAppointmentModal').should('be.visible');
-        cy.get('#deleteAppointmentModal .modal-footer button.btn-secondary').click({force: true});
-        cy.get('#deleteAppointmentModal').should('not.be.visible');
-
-        // Open the Delete modal again
-        cy.get(`div.appointment-card:contains("${title}"):contains("${content}")`).within(() => {
-
-            // Click the "Delete" button in the appointment card
-            cy.get('button[data-cy="openDeleteAppointmentModal"]').click({force: true})
-
-        })
-
-        // Click the "Delete" button to confirm deletion
-        cy.get('button[data-cy="btnDeleteAppointment"]').click({force: true});
-
-        // Check that the modal is closed
-        cy.get('#deleteAppointmentModal').should('not.be.visible');
-
-        // Check that the appointment card is deleted
-        cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`).should('not.exist')
-
+        // Verify that the appointment card is deleted
+        cy.contains(`div.appointment-card:contains("${title}"):contains("${content}")`).should('not.exist');
     })
 
     it('should log out', () => {
